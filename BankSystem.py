@@ -1,6 +1,10 @@
 from random import randint
+import sqlite3
 
-ACCOUNT_DATABASE = {}
+conn = sqlite3.connect('bank.sqlite')
+cur = conn.cursor()
+
+
 MAIN_MENU_LOOP = True
 LOGIN_MENU_LOOP = False
 
@@ -8,7 +12,8 @@ LOGIN_MENU_LOOP = False
 def create_account():
     card_number = generate_card_number()
     password = generate_password()
-    ACCOUNT_DATABASE[card_number] = password
+    cur.execute('INSERT INTO card (number, pin) VALUES (?, ?)', (card_number, password))
+    conn.commit()
     print('Your card has been created')
     print(f'Your card number:\n{card_number}')
     print(f'Your card PIN:\n{password}\n')
@@ -41,17 +46,18 @@ def generate_card_number():
 
 def login():
     global LOGIN_MENU_LOOP
+    cur.execute('SELECT number, pin FROM card')
     print('Enter your card number:')
     user_input_card_number = input()
     print('Enter your PIN:')
     user_input_password = input()
-    for card_number, password in ACCOUNT_DATABASE.items():
+    for card_number, password in cur.fetchall():
         if user_input_card_number == card_number and user_input_password == password:
             print('You have successfully logged in!\n')
             LOGIN_MENU_LOOP = True
             break
-        else:
-            print('Wrong card number or PIN!\n')
+    else:
+        print('Wrong card number or PIN!\n')
 
 
 def login_menu():
@@ -85,4 +91,3 @@ def menu():
 if __name__ == '__main__':
     while MAIN_MENU_LOOP:
         menu()
-
