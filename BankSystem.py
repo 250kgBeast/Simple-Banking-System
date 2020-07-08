@@ -19,7 +19,24 @@ def generate_password():
 
 
 def generate_card_number():
-    return '400000' + f'{randint(1000000000, 9999999999):10}'
+    BIN = '400000'
+    account_identifier = []
+    check_sum = 0
+    for i in range(0, 9):
+        account_identifier.append(randint(0, 9))
+    account_identifier_copy = account_identifier.copy()
+    for i in range(0, 9, 2):
+        account_identifier_copy[i] *= 2
+    for i in range(0, 9):
+        if account_identifier_copy[i] > 9:
+            account_identifier_copy[i] -= 9
+    dig_sum = sum(account_identifier_copy) + 8
+    for i in range(0, 10):
+        if (dig_sum + i) % 10 == 0:
+            check_sum += i
+            break
+    card_number = BIN + ''.join(map(str, account_identifier)) + str(check_sum)
+    return card_number
 
 
 def login():
@@ -68,3 +85,4 @@ def menu():
 if __name__ == '__main__':
     while MAIN_MENU_LOOP:
         menu()
+
