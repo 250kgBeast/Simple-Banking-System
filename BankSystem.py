@@ -1,8 +1,19 @@
 from random import randint
 import sqlite3
+import os.path
 
-conn = sqlite3.connect('bank.sqlite')
-cur = conn.cursor()
+if not os.path.isfile('bank.sqlite'):
+    conn = sqlite3.connect('bank.sqlite')
+    cur = conn.cursor()
+    cur.execute('''CREATE TABLE card(
+                        id INTEGER,
+                        number TEXT,
+                        pin TEXT,
+                        balance INTEGER DEFAULT 0
+                        );''')
+else:
+    conn = sqlite3.connect('bank.sqlite')
+    cur = conn.cursor()
 
 
 class Bank:
@@ -36,7 +47,19 @@ class Bank:
                 break
         return card_number
 
-    def login(self):
+    def __do_transfer(self):
+        pass
+
+    def __balance(self):
+        pass
+
+    def __add_income(self):
+        pass
+
+    def __close_account(self):
+        pass
+
+    def __login(self):
         cur.execute('SELECT number, pin FROM card')
         print('Enter your card number:')
         user_input_card_number = input()
@@ -52,11 +75,17 @@ class Bank:
 
     def __login_menu(self):
         self.LOGIN_MENU_LOOP = True
-        print('1. Balance\n2. Log out\n0. Exit')
+        print('1. Balance\n2. Add income\n3. Do transfer\n4. Close account\n5. Log out\n0. Exit')
         user_input = input()
         if user_input == '1':
-            print('Balance: 0\n')
+            self.__balance()
         elif user_input == '2':
+            self.__add_income()
+        elif user_input == '3':
+            self.__do_transfer()
+        elif user_input == '4':
+            self.__close_account()
+        elif user_input == '5':
             print('You have successfully logged out!')
             self.LOGIN_MENU_LOOP = False
         elif user_input == '0':
@@ -69,7 +98,7 @@ class Bank:
             if user_input == '1':
                 self.__create_account()
             elif user_input == '2':
-                self.login()
+                self.__login()
                 while self.LOGIN_MENU_LOOP:
                     self.__login_menu()
             elif user_input == '0':
