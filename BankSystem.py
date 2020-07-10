@@ -49,8 +49,35 @@ class Bank:
                 break
         return card_number
 
+    def luhn_validator(self, card_number):
+        card_number_copy = [int(i) for i in card_number]
+        card_number_copy = card_number_copy[0:15]
+        card_number_copy = [card_number_copy[i] * 2 if i % 2 == 0
+                            else card_number_copy[i] for i in range(len(card_number_copy))]
+        card_number_copy = [item - 9 if item > 9 else item for item in card_number_copy]
+        return (sum(card_number_copy) + int(card_number[-1])) % 10 == 0
+
     def _do_transfer(self):
-        pass
+        cur.execute("SELECT number FROM card")
+        list_of_all_card_numbers_in_database = cur.fetchall()
+        list_of_all_card_numbers_in_database = [''.join(i) for i in list_of_all_card_numbers_in_database]
+        card_number_user_wants_to_transfer_money = input('Enter card number:\n')
+        if not self.luhn_validator(card_number_user_wants_to_transfer_money):
+            print('Probably you made mistake in the card number. Please try again!')
+        elif card_number_user_wants_to_transfer_money not in list_of_all_card_numbers_in_database:
+            print('Such a card does not exist.')
+        else:
+            money_to_transfer = input('Enter how much money you want to transfer:\n')
+            if int(money_to_transfer) > int(self._logged_in_balance):
+                print('Not enough money!')
+            else:
+                cur.execute('UPDATE card SET balance = balance - ? WHERE number = ?',
+                            (money_to_transfer, self._logged_in_number))
+                cur.execute('UPDATE card set balance = balance + ? WHERE number = ?',
+                            (money_to_transfer, card_number_user_wants_to_transfer_money))
+                conn.commit()
+                self._logged_in_balance -= money_to_transfer
+                print('Success!')
 
     def _balance(self):
         print(f'Balance: {self._logged_in_balance}\n')
@@ -64,7 +91,7 @@ class Bank:
         print('Income was added!\n')
 
     def _close_account(self):
-        cur.execute('DELETE FROM card WHERE number = ?', (self._logged_in_number, ))
+        cur.execute('DELETE FROM card WHERE number = ?', (self._logged_in_number,))
         conn.commit()
         print('The account has been closed!\n')
 
